@@ -1,6 +1,7 @@
 
 #include <stdint.h>
 #include "page.h"
+#include "paging.h"
 #define MULTIBOOT2_HEADER_MAGIC         0xe85250d6
 
 const unsigned int multiboot_header[]  __attribute__((section(".multiboot"))) = {MULTIBOOT2_HEADER_MAGIC, 0, 16, -(16+MULTIBOOT2_HEADER_MAGIC), 0, 12};
@@ -17,6 +18,16 @@ void main() {
     
 
     init_pfa_list();
+        
+    init_paging();
+    
+    
+    vram[0] = (color << 8) | 'P';
+    vram[1] = (color << 8) | 'A';
+    vram[2] = (color << 8) | 'G';
+    vram[3] = (color << 8) | 'E';
+    vram[4] = (color << 8) | 'D';
+   
 
     while(1) {
         uint8_t status = inb(0x64);
