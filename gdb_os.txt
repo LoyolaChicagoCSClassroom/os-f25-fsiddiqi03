@@ -4,3 +4,5 @@ target remote localhost:1234
 layout src
 b main
 c
+set architecture i386
+ 

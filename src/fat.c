@@ -36,10 +36,8 @@ static struct boot_sector *bs;
 static unsigned int root_sector;
 static unsigned int data_region_start;
 
-
+static unsigned char boot_sector_buf[512];
 static unsigned char rde_region[16384];
-
-
 static unsigned char fat_table[262144];
 
 
@@ -74,8 +72,8 @@ static char upper(char c) {
 int fatInit(void) {
 
    
-    ata_lba_read(0, rde_region, 1);
-    bs = (struct boot_sector*)rde_region;
+    ata_lba_read(2048, boot_sector_buf, 1);
+    bs = (struct boot_sector*)boot_sector_buf;
 
     
     if (bs->boot_signature != 0xAA55)
@@ -90,7 +88,7 @@ int fatInit(void) {
     unsigned int fatsize   = bs->num_sectors_per_fat;
 
    
-    ata_lba_read(fat_start, fat_table, fatsize);
+    ata_lba_read(2048 + fat_start, fat_table, fatsize);
 
    
     root_sector = bs->num_reserved_sectors +
@@ -105,7 +103,7 @@ int fatInit(void) {
     data_region_start = root_sector + root_dir_sectors;
 
     // Load entire root directory into rde_region
-    ata_lba_read(root_sector, rde_region, root_dir_sectors);
+    ata_lba_read(2048 + root_sector, rde_region, root_dir_sectors);
 
     return 0;
 }
@@ -184,7 +182,7 @@ int fatRead(struct file *file, char *buffer, unsigned int size) {
 
        
         uint32_t first_sector =
-            data_region_start + (cluster - 2) * bs->num_sectors_per_cluster;
+           2048 +  data_region_start + (cluster - 2) * bs->num_sectors_per_cluster;
 
       
         ata_lba_read(first_sector, clusterbuf, bs->num_sectors_per_cluster);
