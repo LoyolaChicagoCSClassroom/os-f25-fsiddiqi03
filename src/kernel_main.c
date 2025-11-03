@@ -2,6 +2,8 @@
 #include <stdint.h>
 #include "page.h"
 #include "paging.h"
+#include "fat.h"
+#include "ide.h"
 #define MULTIBOOT2_HEADER_MAGIC         0xe85250d6
 
 const unsigned int multiboot_header[]  __attribute__((section(".multiboot"))) = {MULTIBOOT2_HEADER_MAGIC, 0, 16, -(16+MULTIBOOT2_HEADER_MAGIC), 0, 12};
@@ -13,20 +15,23 @@ uint8_t inb (uint16_t _port) {
 }
 
 void main() {
-    unsigned short *vram = (unsigned short*)0xb8000; // Base address of video mem
-    const unsigned char color = 7; // gray text on black background
+    unsigned short *vram = (unsigned short*)0xb8000;
     
+    
+    fatInit();
 
-    init_pfa_list();
-        
-    init_paging();
-    
-    
-    vram[0] = (color << 8) | 'P';
-    vram[1] = (color << 8) | 'A';
-    vram[2] = (color << 8) | 'G';
-    vram[3] = (color << 8) | 'E';
-    vram[4] = (color << 8) | 'D';
+    struct file *f = fatOpen("testfile.txt");
+
+    char buffer[512];
+
+    for (int i = 0; i < 512; i++) buffer[i] = 0;
+
+    int bytes = fatRead(f, buffer, 512);
+
+    for (int i = 0; i < 200 && buffer[i] != '\0'; i++) {
+    	vram[10 + i] = (0x0F << 8) | buffer[i]; 
+    } 
+
    
 
     while(1) {
