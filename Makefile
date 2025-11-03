@@ -3,8 +3,8 @@ UNAME_M := $(shell uname -m)
 
 ifeq ($(UNAME_M),aarch64)
 PREFIX:=i686-elf-
-BOOTIMG:=/usr/local/grub/lib/grub/i386-pc/boot.img
-GRUBLOC:=/usr/bin/
+BOOTIMG:=/usr/local/grub-i386/lib/grub/i386-pc/boot.img
+GRUBLOC:=/usr/local/grub-i386/bin/
 else
 PREFIX:=
 BOOTIMG:=/usr/lib/grub/i386-pc/boot.img
@@ -25,6 +25,9 @@ SDIR = src
 OBJS = \
 	kernel_main.o \
 	page.o \
+	paging.o\
+	ide.o\
+	fat.o\
 
 
 # Make sure to keep a blank line here after OBJS list
@@ -63,8 +66,12 @@ rootfs.img:
 run:
 	qemu-system-i386 -hda rootfs.img
 
-debug:
-	./launch_qemu.sh
+debug: 
+	screen -S qemu -d -m qemu-system-i386 -S -s -hda rootfs.img -monitor stdio 
+	TERM=xterm gdb -x gdb_os.txt && killall qemu-system-i386
+
+
+
 
 clean:
 	rm -f grub.img kernel rootfs.img obj/*
